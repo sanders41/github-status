@@ -14,4 +14,7 @@ pub enum Command {
 
     /// Get the current status
     Status,
+
+    /// Status of each component.
+    Component,
 }
