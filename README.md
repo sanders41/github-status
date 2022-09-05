@@ -1,6 +1,6 @@
 # GitHub Status
 
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/sanders41/github-status/main.svg)](https://results.pre-commit.ci/latest/github/sanders41/github-status/main)
+[![Tests Status](https://github.com/sanders41/github-status/workflows/Testing/badge.svg?branch=main&event=push)]
 
 A simple Cli to check the status of GitHub
 
