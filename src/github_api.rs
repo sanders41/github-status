@@ -45,7 +45,7 @@ pub struct Page {
     pub id: String,
     pub name: String,
     pub url: String,
-    pub update_at: Option<String>,
+    pub updated_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -72,6 +72,48 @@ pub struct Status {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct ComponentInfo {
+    pub page: Page,
+    pub components: Vec<Component>,
+}
+
+impl ComponentInfo {
+    pub fn print() -> Result<()> {
+        let status = get_component_status()?;
+
+        for component in status.components {
+            if component.description.is_some() {
+                if component.status == "operational" {
+                    println!("{}: {}", component.name, component.status.green());
+                } else if component.status == "degraded_performance" {
+                    println!("{}: {}", component.name, component.status.yellow());
+                } else if component.status == "partial_outge" {
+                    println!(
+                        "{}: {}",
+                        component.name,
+                        component.status.truecolor(255, 165, 0)
+                    );
+                } else if component.status == "major_outage" {
+                    println!("{}: {}", component.name, component.status.red());
+                } else {
+                    println!("{}: {}", component.name, component.status);
+                }
+
+                if let Some(updated_at) = component.updated_at {
+                    println!("    Last Updated At: {}", updated_at);
+                }
+
+                println!();
+            }
+        }
+
+        println!("More info: {:?}", status.page.url);
+
+        Ok(())
+    }
+}
+
+#[derive(Deserialize, Debug)]
 pub struct StatusInfo {
     pub page: Page,
     pub status: Status,
@@ -80,10 +122,6 @@ pub struct StatusInfo {
 impl StatusInfo {
     pub fn print() -> Result<()> {
         let status = get_status()?;
-
-        if status.page.update_at.is_some() {
-            println!("Last update: {:?}", status.page.update_at);
-        }
 
         if status.status.indicator == "none" {
             println!("{}", status.status.description.green());
@@ -98,7 +136,10 @@ impl StatusInfo {
         }
 
         println!();
-        println!("More info: {:?}", status.page.url);
+        if let Some(updated_at) = status.page.updated_at {
+            println!("Last update: {}", updated_at);
+        }
+        println!("More info: {}", status.page.url);
 
         Ok(())
     }
@@ -150,10 +191,20 @@ impl SummaryInfo {
         }
 
         println!();
-        println!("More info: {:?}", summary.page.url);
+        if let Some(updated_at) = summary.page.updated_at {
+            println!("Last Updated At: {}", updated_at);
+        }
+        println!("More info: {}", summary.page.url);
 
         Ok(())
     }
+}
+
+fn get_component_status() -> Result<ComponentInfo> {
+    let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/components.json")?
+        .json::<ComponentInfo>()?;
+
+    Ok(result)
 }
 
 fn get_status() -> Result<StatusInfo> {
