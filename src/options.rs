@@ -17,4 +17,7 @@ pub enum Command {
 
     /// Status of each component.
     Component,
+
+    /// Gets a list of any unresolved incidents.
+    Unresolved,
 }
