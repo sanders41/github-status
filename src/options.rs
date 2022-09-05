@@ -9,15 +9,18 @@ pub struct Options {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Get a summary for the current GitHub status.
-    Summary,
-
-    /// Get the current status
-    Status,
+    /// Gets a list of all incidents.
+    AllIncidents,
 
     /// Status of each component.
     Component,
 
+    /// Get the current status
+    Status,
+
+    /// Get a summary for the current GitHub status.
+    Summary,
+
     /// Gets a list of any unresolved incidents.
-    Unresolved,
+    UnresolvedIncidents,
 }
