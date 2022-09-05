@@ -3,8 +3,8 @@ use colored::*;
 use serde::Deserialize;
 
 enum IncidentType {
-    ALL,
-    UNRESOLVED,
+    All,
+    Unresolved,
 }
 
 #[derive(Deserialize, Debug)]
@@ -244,26 +244,21 @@ pub struct IncidentInfo {
 
 impl IncidentInfo {
     fn get_incidents(incident_type: IncidentType) -> Result<IncidentInfo> {
-        let result: IncidentInfo;
-
-        match incident_type {
-            IncidentType::ALL => {
-                result =
-                    reqwest::blocking::get("https://www.githubstatus.com/api/v2/incidents.json")?
-                        .json::<IncidentInfo>()?;
+        let result: IncidentInfo = match incident_type {
+            IncidentType::All => {
+                reqwest::blocking::get("https://www.githubstatus.com/api/v2/incidents.json")?
+                    .json::<IncidentInfo>()?
             }
-            IncidentType::UNRESOLVED => {
-                result = reqwest::blocking::get(
-                    "https://www.githubstatus.com/api/v2/incidents/unresolved.json",
-                )?
-                .json::<IncidentInfo>()?;
-            }
-        }
+            IncidentType::Unresolved => reqwest::blocking::get(
+                "https://www.githubstatus.com/api/v2/incidents/unresolved.json",
+            )?
+            .json::<IncidentInfo>()?,
+        };
 
         Ok(result)
     }
 
-    fn print(self: Self) {
+    fn print(self) {
         if self.incidents.is_empty() {
             println!("No unresolved incidents reported");
             println!();
@@ -315,7 +310,7 @@ impl IncidentInfo {
     }
 
     pub fn print_all() {
-        let info = IncidentInfo::get_incidents(IncidentType::ALL);
+        let info = IncidentInfo::get_incidents(IncidentType::All);
 
         match info {
             Ok(i) => IncidentInfo::print(i),
@@ -324,7 +319,7 @@ impl IncidentInfo {
     }
 
     pub fn print_unresolved() {
-        let info = IncidentInfo::get_incidents(IncidentType::UNRESOLVED);
+        let info = IncidentInfo::get_incidents(IncidentType::Unresolved);
 
         match info {
             Ok(i) => IncidentInfo::print(i),
