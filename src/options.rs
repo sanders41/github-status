@@ -9,18 +9,27 @@ pub struct Options {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Gets a list of active maintenance.
+    ActiveMaintenance,
+
     /// Gets a list of all incidents.
     AllIncidents,
+
+    /// Gets a list of the 50 most recent scheduled maintenances.
+    AllScheduledMaintenances,
 
     /// Status of each component.
     Component,
 
-    /// Get the current status
+    /// Gets the current status
     Status,
 
-    /// Get a summary for the current GitHub status.
+    /// Gets a summary for the current GitHub status.
     Summary,
 
     /// Gets a list of any unresolved incidents.
     UnresolvedIncidents,
+
+    /// Gets a list of upcoming maintenance
+    UpcomingMaintenance,
 }
