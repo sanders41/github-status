@@ -200,6 +200,63 @@ impl SummaryInfo {
     }
 }
 
+#[derive(Deserialize, Debug)]
+pub struct UnresolvedInfo {
+    pub page: Page,
+    pub incidents: Vec<Incident>,
+}
+
+impl UnresolvedInfo {
+    pub fn print() -> Result<()> {
+        let status = get_unresolved()?;
+
+        if status.incidents.is_empty() {
+            println!("No unresolved incidents reported");
+            println!();
+        } else {
+            for incident in status.incidents {
+                if incident.impact == "none" {
+                    println!("{}", incident.name.green());
+                } else if incident.impact == "minor" {
+                    println!("{}", incident.name.yellow());
+                } else if incident.impact == "major" {
+                    println!("{}", incident.name.truecolor(255, 165, 0));
+                } else if incident.impact == "critical" {
+                    println!("{}", incident.name.red());
+                } else {
+                    println!("{}", incident.name);
+                }
+
+                println!("    Created At: {}", incident.create_at);
+                println!("    Short Link: {}", incident.shortlink);
+                println!("    Status: {}", incident.status);
+
+                if let Some(updated_at) = incident.updated_at {
+                    println!("    Updated At: {}", updated_at);
+                }
+                println!("    Updates:");
+                for update in incident.incedent_updates {
+                    println!("        Update: {}", update.body);
+                    println!("        create_at: {}", update.created_at);
+                    println!("        status: {}", update.status);
+                    if let Some(updated_at) = update.updated_at {
+                        println!("        Updated At: {}", updated_at);
+                    }
+                }
+
+                println!();
+            }
+        }
+
+        if let Some(updated_at) = status.page.updated_at {
+            println!("Last update: {}", updated_at);
+        }
+        println!("More info: {}", status.page.url);
+
+        Ok(())
+    }
+}
+
 fn get_component_status() -> Result<ComponentInfo> {
     let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/components.json")?
         .json::<ComponentInfo>()?;
@@ -217,6 +274,14 @@ fn get_status() -> Result<StatusInfo> {
 fn get_summary() -> Result<SummaryInfo> {
     let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/summary.json")?
         .json::<SummaryInfo>()?;
+
+    Ok(result)
+}
+
+fn get_unresolved() -> Result<UnresolvedInfo> {
+    let result =
+        reqwest::blocking::get("https://www.githubstatus.com/api/v2/incidents/unresolved.json")?
+            .json::<UnresolvedInfo>()?;
 
     Ok(result)
 }
