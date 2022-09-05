@@ -4,40 +4,40 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct Component {
-    pub created_at: String, // TODO: change to date time
+    pub created_at: String,
     pub description: Option<String>,
     pub id: String,
     pub name: String,
     pub page_id: String,
     pub position: u8,
     pub status: String,
-    pub updated_at: Option<String>, // TODO: change to date time
+    pub updated_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Incident {
-    pub create_at: String, // TODO: change to date time
+    pub create_at: String,
     pub id: String,
     pub impact: String,
     pub incedent_updates: Vec<IncidentUpdate>,
-    pub monitoring_at: Option<String>, // TODO: change to date time
+    pub monitoring_at: Option<String>,
     pub name: String,
     pub page_id: String,
-    pub resolved_at: Option<String>, // TODO: change to date time
+    pub resolved_at: Option<String>,
     pub shortlink: String,
     pub status: String,
-    pub updated_at: Option<String>, // TODO: change to date time
+    pub updated_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct IncidentUpdate {
     pub body: String,
-    pub created_at: String, // TODO: change to date time
-    pub display_at: String, // TODO: change to date time
+    pub created_at: String,
+    pub display_at: String,
     pub id: String,
     pub incident_id: String,
     pub status: String,
-    pub updated_at: Option<String>, // TODO: change to date time
+    pub updated_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -45,24 +45,24 @@ pub struct Page {
     pub id: String,
     pub name: String,
     pub url: String,
-    pub update_at: Option<String>, // TODO: change to date time
+    pub update_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct ScheduledMaintenance {
-    pub created_at: String, // TODO: change to date time
+    pub created_at: String,
     pub id: String,
     pub impact: String,
     pub incident_updates: Vec<IncidentUpdate>,
-    pub monitoring_at: Option<String>, // TODO: change to date time
+    pub monitoring_at: Option<String>,
     pub name: String,
     pub page_id: String,
-    pub resolved_at: Option<String>, // TODO: change to date time
-    pub scheduled_for: String,       // TODO: change to date time
-    pub scheduled_until: String,     // TODO: change to date time
+    pub resolved_at: Option<String>,
+    pub scheduled_for: String,
+    pub scheduled_until: String,
     pub shortlink: String,
     pub status: String,
-    pub updated_at: Option<String>, // TODO: change to date time
+    pub updated_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -72,7 +72,40 @@ pub struct Status {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Summary {
+pub struct StatusInfo {
+    pub page: Page,
+    pub status: Status,
+}
+
+impl StatusInfo {
+    pub fn print() -> Result<()> {
+        let status = get_status()?;
+
+        if status.page.update_at.is_some() {
+            println!("Last update: {:?}", status.page.update_at);
+        }
+
+        if status.status.indicator == "none" {
+            println!("{}", status.status.description.green());
+        } else if status.status.indicator == "minor" {
+            println!("{}", status.status.description.yellow());
+        } else if status.status.indicator == "major" {
+            println!("{}", status.status.description.truecolor(255, 165, 0));
+        } else if status.status.indicator == "critical" {
+            println!("{}", status.status.description.red());
+        } else {
+            println!("{}", status.status.description);
+        }
+
+        println!();
+        println!("More info: {:?}", status.page.url);
+
+        Ok(())
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SummaryInfo {
     pub page: Page,
     pub status: Status,
     pub components: Vec<Component>,
@@ -80,14 +113,16 @@ pub struct Summary {
     pub scheduled_maintenances: Vec<ScheduledMaintenance>,
 }
 
-impl Summary {
-    pub fn print_summary() -> Result<()> {
+impl SummaryInfo {
+    pub fn print() -> Result<()> {
         let summary = get_summary()?;
-        if summary.status.description == "All Systems Operational" {
+        if summary.status.indicator == "none" {
             println!("{}", summary.status.description.green());
-        } else if summary.status.description == "Partial System Outage" {
+        } else if summary.status.indicator == "minor" {
             println!("{}", summary.status.description.yellow());
-        } else if summary.status.description == "Major Service Outage" {
+        } else if summary.status.indicator == "major" {
+            println!("{}", summary.status.description.truecolor(255, 165, 0));
+        } else if summary.status.indicator == "critical" {
             println!("{}", summary.status.description.red());
         } else {
             println!("{}", summary.status.description);
@@ -114,13 +149,23 @@ impl Summary {
             }
         }
 
+        println!();
+        println!("More info: {:?}", summary.page.url);
+
         Ok(())
     }
 }
 
-fn get_summary() -> Result<Summary> {
+fn get_status() -> Result<StatusInfo> {
+    let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/status.json")?
+        .json::<StatusInfo>()?;
+
+    Ok(result)
+}
+
+fn get_summary() -> Result<SummaryInfo> {
     let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/summary.json")?
-        .json::<Summary>()?;
+        .json::<SummaryInfo>()?;
 
     Ok(result)
 }

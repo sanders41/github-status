@@ -11,4 +11,7 @@ pub struct Options {
 pub enum Command {
     /// Get a summary for the current GitHub status.
     Summary,
+
+    /// Get the current status
+    Status,
 }
