@@ -210,7 +210,7 @@ impl UnresolvedInfo {
     pub fn print() -> Result<()> {
         let status = get_unresolved()?;
 
-        if status.incidents.len() == 0 {
+        if status.incidents.is_empty() {
             println!("No unresolved incidents reported");
             println!();
         } else {
