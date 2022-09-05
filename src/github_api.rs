@@ -7,6 +7,12 @@ enum IncidentType {
     Unresolved,
 }
 
+enum MaintenanceType {
+    Active,
+    All,
+    Upcoming,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Component {
     pub created_at: Option<String>,
@@ -24,7 +30,7 @@ pub struct Incident {
     pub created_at: Option<String>,
     pub id: String,
     pub impact: String,
-    pub incedent_updates: Option<Vec<IncidentUpdate>>,
+    pub incident_updates: Option<Vec<IncidentUpdate>>,
     pub monitoring_at: Option<String>,
     pub name: String,
     pub page_id: String,
@@ -58,7 +64,7 @@ pub struct ScheduledMaintenance {
     pub created_at: Option<String>,
     pub id: String,
     pub impact: String,
-    pub incident_updates: Vec<IncidentUpdate>,
+    pub incident_updates: Option<Vec<IncidentUpdate>>,
     pub monitoring_at: Option<String>,
     pub name: String,
     pub page_id: String,
@@ -125,6 +131,111 @@ impl ComponentInfo {
             }
             _ => println!("{}", "Error retrieving information".red()),
         };
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct MaintenanceInfo {
+    pub page: Page,
+    pub scheduled_maintenances: Vec<ScheduledMaintenance>,
+}
+
+impl MaintenanceInfo {
+    fn get_maintenance(maintenance_type: MaintenanceType) -> Result<MaintenanceInfo> {
+        let result: MaintenanceInfo = match maintenance_type {
+            MaintenanceType::Active => reqwest::blocking::get(
+                "https://www.githubstatus.com/api/v2/scheduled-maintenances/active.json",
+            )?
+            .json::<MaintenanceInfo>()?,
+            MaintenanceType::All => reqwest::blocking::get(
+                "https://www.githubstatus.com/api/v2/scheduled-maintenances.json",
+            )?
+            .json::<MaintenanceInfo>()?,
+            MaintenanceType::Upcoming => reqwest::blocking::get(
+                "https://www.githubstatus.com/api/v2/scheduled-maintenances/upcoming.json",
+            )?
+            .json::<MaintenanceInfo>()?,
+        };
+
+        Ok(result)
+    }
+
+    fn print(self) {
+        if self.scheduled_maintenances.is_empty() {
+            println!("No unresolved incidents reported");
+            println!();
+        } else {
+            for incident in self.scheduled_maintenances {
+                if incident.impact == "none" {
+                    println!("{}", incident.name.green());
+                } else if incident.impact == "minor" {
+                    println!("{}", incident.name.yellow());
+                } else if incident.impact == "major" {
+                    println!("{}", incident.name.truecolor(255, 165, 0));
+                } else if incident.impact == "critical" {
+                    println!("{}", incident.name.red());
+                } else {
+                    println!("{}", incident.name);
+                }
+
+                if let Some(created_at) = incident.created_at {
+                    println!("    Created At: {}", created_at);
+                }
+                println!("    Short Link: {}", incident.shortlink);
+                println!("    Status: {}", incident.status);
+
+                if let Some(updated_at) = incident.updated_at {
+                    println!("    Updated At: {}", updated_at);
+                }
+                if let Some(incident_updates) = incident.incident_updates {
+                    println!("    Updates:");
+                    for update in incident_updates {
+                        println!("        Update: {}", update.body);
+                        if let Some(created_at) = update.created_at {
+                            println!("        created_at: {}", created_at);
+                        }
+                        println!("        status: {}", update.status);
+                        if let Some(updated_at) = update.updated_at {
+                            println!("        Updated At: {}", updated_at);
+                        }
+                    }
+                }
+
+                println!();
+            }
+        }
+
+        if let Some(updated_at) = self.page.updated_at {
+            println!("Last update: {}", updated_at);
+        }
+        println!("More info: {}", self.page.url);
+    }
+
+    pub fn print_activate() {
+        let info = MaintenanceInfo::get_maintenance(MaintenanceType::Active);
+
+        match info {
+            Ok(i) => MaintenanceInfo::print(i),
+            _ => println!("{}", "Error retrieving information".red()),
+        }
+    }
+
+    pub fn print_all() {
+        let info = MaintenanceInfo::get_maintenance(MaintenanceType::All);
+
+        match info {
+            Ok(i) => MaintenanceInfo::print(i),
+            _ => println!("{}", "Error retrieving information".red()),
+        }
+    }
+
+    pub fn print_upcoming() {
+        let info = MaintenanceInfo::get_maintenance(MaintenanceType::Upcoming);
+
+        match info {
+            Ok(i) => MaintenanceInfo::print(i),
+            _ => println!("{}", "Error retrieving information".red()),
+        }
     }
 }
 
@@ -285,9 +396,9 @@ impl IncidentInfo {
                 if let Some(updated_at) = incident.updated_at {
                     println!("    Updated At: {}", updated_at);
                 }
-                if let Some(incedent_updates) = incident.incedent_updates {
+                if let Some(incident_updates) = incident.incident_updates {
                     println!("    Updates:");
-                    for update in incedent_updates {
+                    for update in incident_updates {
                         println!("        Update: {}", update.body);
                         if let Some(created_at) = update.created_at {
                             println!("        created_at: {}", created_at);
