@@ -1,6 +1,6 @@
 # GitHub Status
 
-[![Tests Status](https://github.com/sanders41/github-status/workflows/Testing/badge.svg?branch=main&event=push)]
+![Tests Status](https://github.com/sanders41/github-status/workflows/Testing/badge.svg?branch=main&event=push)
 
 A simple Cli to check the status of GitHub
 
