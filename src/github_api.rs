@@ -2,9 +2,14 @@ use anyhow::Result;
 use colored::*;
 use serde::Deserialize;
 
+enum IncidentType {
+    ALL,
+    UNRESOLVED,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Component {
-    pub created_at: String,
+    pub created_at: Option<String>,
     pub description: Option<String>,
     pub id: String,
     pub name: String,
@@ -16,10 +21,10 @@ pub struct Component {
 
 #[derive(Deserialize, Debug)]
 pub struct Incident {
-    pub create_at: String,
+    pub created_at: Option<String>,
     pub id: String,
     pub impact: String,
-    pub incedent_updates: Vec<IncidentUpdate>,
+    pub incedent_updates: Option<Vec<IncidentUpdate>>,
     pub monitoring_at: Option<String>,
     pub name: String,
     pub page_id: String,
@@ -32,8 +37,8 @@ pub struct Incident {
 #[derive(Deserialize, Debug)]
 pub struct IncidentUpdate {
     pub body: String,
-    pub created_at: String,
-    pub display_at: String,
+    pub created_at: Option<String>,
+    pub display_at: Option<String>,
     pub id: String,
     pub incident_id: String,
     pub status: String,
@@ -50,7 +55,7 @@ pub struct Page {
 
 #[derive(Deserialize, Debug)]
 pub struct ScheduledMaintenance {
-    pub created_at: String,
+    pub created_at: Option<String>,
     pub id: String,
     pub impact: String,
     pub incident_updates: Vec<IncidentUpdate>,
@@ -78,38 +83,48 @@ pub struct ComponentInfo {
 }
 
 impl ComponentInfo {
-    pub fn print() -> Result<()> {
-        let status = get_component_status()?;
+    fn get_component_status() -> Result<ComponentInfo> {
+        let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/components.json")?
+            .json::<ComponentInfo>()?;
 
-        for component in status.components {
-            if component.description.is_some() {
-                if component.status == "operational" {
-                    println!("{}: {}", component.name, component.status.green());
-                } else if component.status == "degraded_performance" {
-                    println!("{}: {}", component.name, component.status.yellow());
-                } else if component.status == "partial_outge" {
-                    println!(
-                        "{}: {}",
-                        component.name,
-                        component.status.truecolor(255, 165, 0)
-                    );
-                } else if component.status == "major_outage" {
-                    println!("{}: {}", component.name, component.status.red());
-                } else {
-                    println!("{}: {}", component.name, component.status);
+        Ok(result)
+    }
+
+    pub fn print() {
+        let status = ComponentInfo::get_component_status();
+
+        match status {
+            Ok(s) => {
+                for component in s.components {
+                    if component.description.is_some() {
+                        if component.status == "operational" {
+                            println!("{}: {}", component.name, component.status.green());
+                        } else if component.status == "degraded_performance" {
+                            println!("{}: {}", component.name, component.status.yellow());
+                        } else if component.status == "partial_outge" {
+                            println!(
+                                "{}: {}",
+                                component.name,
+                                component.status.truecolor(255, 165, 0)
+                            );
+                        } else if component.status == "major_outage" {
+                            println!("{}: {}", component.name, component.status.red());
+                        } else {
+                            println!("{}: {}", component.name, component.status);
+                        }
+
+                        if let Some(updated_at) = component.updated_at {
+                            println!("    Last Updated At: {}", updated_at);
+                        }
+
+                        println!();
+                    }
                 }
 
-                if let Some(updated_at) = component.updated_at {
-                    println!("    Last Updated At: {}", updated_at);
-                }
-
-                println!();
+                println!("More info: {:?}", s.page.url);
             }
-        }
-
-        println!("More info: {:?}", status.page.url);
-
-        Ok(())
+            _ => println!("{}", "Error retrieving information".red()),
+        };
     }
 }
 
@@ -120,28 +135,38 @@ pub struct StatusInfo {
 }
 
 impl StatusInfo {
-    pub fn print() -> Result<()> {
-        let status = get_status()?;
+    fn get_status() -> Result<StatusInfo> {
+        let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/status.json")?
+            .json::<StatusInfo>()?;
 
-        if status.status.indicator == "none" {
-            println!("{}", status.status.description.green());
-        } else if status.status.indicator == "minor" {
-            println!("{}", status.status.description.yellow());
-        } else if status.status.indicator == "major" {
-            println!("{}", status.status.description.truecolor(255, 165, 0));
-        } else if status.status.indicator == "critical" {
-            println!("{}", status.status.description.red());
-        } else {
-            println!("{}", status.status.description);
-        }
+        Ok(result)
+    }
 
-        println!();
-        if let Some(updated_at) = status.page.updated_at {
-            println!("Last update: {}", updated_at);
-        }
-        println!("More info: {}", status.page.url);
+    pub fn print() {
+        let status = StatusInfo::get_status();
 
-        Ok(())
+        match status {
+            Ok(s) => {
+                if s.status.indicator == "none" {
+                    println!("{}", s.status.description.green());
+                } else if s.status.indicator == "minor" {
+                    println!("{}", s.status.description.yellow());
+                } else if s.status.indicator == "major" {
+                    println!("{}", s.status.description.truecolor(255, 165, 0));
+                } else if s.status.indicator == "critical" {
+                    println!("{}", s.status.description.red());
+                } else {
+                    println!("{}", s.status.description);
+                }
+
+                println!();
+                if let Some(updated_at) = s.page.updated_at {
+                    println!("Last update: {}", updated_at);
+                }
+                println!("More info: {}", s.page.url);
+            }
+            _ => println!("{}", "Error retrieving information".red()),
+        };
     }
 }
 
@@ -155,66 +180,95 @@ pub struct SummaryInfo {
 }
 
 impl SummaryInfo {
-    pub fn print() -> Result<()> {
-        let summary = get_summary()?;
-        if summary.status.indicator == "none" {
-            println!("{}", summary.status.description.green());
-        } else if summary.status.indicator == "minor" {
-            println!("{}", summary.status.description.yellow());
-        } else if summary.status.indicator == "major" {
-            println!("{}", summary.status.description.truecolor(255, 165, 0));
-        } else if summary.status.indicator == "critical" {
-            println!("{}", summary.status.description.red());
-        } else {
-            println!("{}", summary.status.description);
-        }
+    fn get_summary() -> Result<SummaryInfo> {
+        let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/summary.json")?
+            .json::<SummaryInfo>()?;
 
-        println!();
+        Ok(result)
+    }
 
-        for component in summary.components {
-            if component.description.is_some() {
-                if component.status == "operational" {
-                    println!("{}: {}", component.name, component.status.green());
-                } else if component.status == "degraded_performance" {
-                    println!("{}: {}", component.name, component.status.yellow());
-                } else if component.status == "partial_outage" {
-                    println!(
-                        "{}: {}",
-                        component.name,
-                        component.status.truecolor(255, 165, 0)
-                    );
-                } else if component.status == "major_outage" {
-                    println!("{}: {}", component.name, component.status.red());
+    pub fn print() {
+        let summary = SummaryInfo::get_summary();
+
+        match summary {
+            Ok(s) => {
+                if s.status.indicator == "none" {
+                    println!("{}", s.status.description.green());
+                } else if s.status.indicator == "minor" {
+                    println!("{}", s.status.description.yellow());
+                } else if s.status.indicator == "major" {
+                    println!("{}", s.status.description.truecolor(255, 165, 0));
+                } else if s.status.indicator == "critical" {
+                    println!("{}", s.status.description.red());
                 } else {
+                    println!("{}", s.status.description);
                 }
+
+                println!();
+
+                for component in s.components {
+                    if component.description.is_some() {
+                        if component.status == "operational" {
+                            println!("{}: {}", component.name, component.status.green());
+                        } else if component.status == "degraded_performance" {
+                            println!("{}: {}", component.name, component.status.yellow());
+                        } else if component.status == "partial_outage" {
+                            println!(
+                                "{}: {}",
+                                component.name,
+                                component.status.truecolor(255, 165, 0)
+                            );
+                        } else if component.status == "major_outage" {
+                            println!("{}: {}", component.name, component.status.red());
+                        } else {
+                        }
+                    }
+                }
+
+                println!();
+                if let Some(updated_at) = s.page.updated_at {
+                    println!("Last Updated At: {}", updated_at);
+                }
+                println!("More info: {}", s.page.url);
             }
-        }
-
-        println!();
-        if let Some(updated_at) = summary.page.updated_at {
-            println!("Last Updated At: {}", updated_at);
-        }
-        println!("More info: {}", summary.page.url);
-
-        Ok(())
+            _ => println!("{}", "Error retrieving information".red()),
+        };
     }
 }
 
 #[derive(Deserialize, Debug)]
-pub struct UnresolvedInfo {
+pub struct IncidentInfo {
     pub page: Page,
     pub incidents: Vec<Incident>,
 }
 
-impl UnresolvedInfo {
-    pub fn print() -> Result<()> {
-        let status = get_unresolved()?;
+impl IncidentInfo {
+    fn get_incidents(incident_type: IncidentType) -> Result<IncidentInfo> {
+        let result: IncidentInfo;
 
-        if status.incidents.is_empty() {
+        match incident_type {
+            IncidentType::ALL => {
+                result =
+                    reqwest::blocking::get("https://www.githubstatus.com/api/v2/incidents.json")?
+                        .json::<IncidentInfo>()?;
+            }
+            IncidentType::UNRESOLVED => {
+                result = reqwest::blocking::get(
+                    "https://www.githubstatus.com/api/v2/incidents/unresolved.json",
+                )?
+                .json::<IncidentInfo>()?;
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn print(self: Self) {
+        if self.incidents.is_empty() {
             println!("No unresolved incidents reported");
             println!();
         } else {
-            for incident in status.incidents {
+            for incident in self.incidents {
                 if incident.impact == "none" {
                     println!("{}", incident.name.green());
                 } else if incident.impact == "minor" {
@@ -227,20 +281,26 @@ impl UnresolvedInfo {
                     println!("{}", incident.name);
                 }
 
-                println!("    Created At: {}", incident.create_at);
+                if let Some(created_at) = incident.created_at {
+                    println!("    Created At: {}", created_at);
+                }
                 println!("    Short Link: {}", incident.shortlink);
                 println!("    Status: {}", incident.status);
 
                 if let Some(updated_at) = incident.updated_at {
                     println!("    Updated At: {}", updated_at);
                 }
-                println!("    Updates:");
-                for update in incident.incedent_updates {
-                    println!("        Update: {}", update.body);
-                    println!("        create_at: {}", update.created_at);
-                    println!("        status: {}", update.status);
-                    if let Some(updated_at) = update.updated_at {
-                        println!("        Updated At: {}", updated_at);
+                if let Some(incedent_updates) = incident.incedent_updates {
+                    println!("    Updates:");
+                    for update in incedent_updates {
+                        println!("        Update: {}", update.body);
+                        if let Some(created_at) = update.created_at {
+                            println!("        created_at: {}", created_at);
+                        }
+                        println!("        status: {}", update.status);
+                        if let Some(updated_at) = update.updated_at {
+                            println!("        Updated At: {}", updated_at);
+                        }
                     }
                 }
 
@@ -248,40 +308,27 @@ impl UnresolvedInfo {
             }
         }
 
-        if let Some(updated_at) = status.page.updated_at {
+        if let Some(updated_at) = self.page.updated_at {
             println!("Last update: {}", updated_at);
         }
-        println!("More info: {}", status.page.url);
-
-        Ok(())
+        println!("More info: {}", self.page.url);
     }
-}
 
-fn get_component_status() -> Result<ComponentInfo> {
-    let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/components.json")?
-        .json::<ComponentInfo>()?;
+    pub fn print_all() {
+        let info = IncidentInfo::get_incidents(IncidentType::ALL);
 
-    Ok(result)
-}
+        match info {
+            Ok(i) => IncidentInfo::print(i),
+            _ => println!("{}", "Error retrieving information".red()),
+        }
+    }
 
-fn get_status() -> Result<StatusInfo> {
-    let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/status.json")?
-        .json::<StatusInfo>()?;
+    pub fn print_unresolved() {
+        let info = IncidentInfo::get_incidents(IncidentType::UNRESOLVED);
 
-    Ok(result)
-}
-
-fn get_summary() -> Result<SummaryInfo> {
-    let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/summary.json")?
-        .json::<SummaryInfo>()?;
-
-    Ok(result)
-}
-
-fn get_unresolved() -> Result<UnresolvedInfo> {
-    let result =
-        reqwest::blocking::get("https://www.githubstatus.com/api/v2/incidents/unresolved.json")?
-            .json::<UnresolvedInfo>()?;
-
-    Ok(result)
+        match info {
+            Ok(i) => IncidentInfo::print(i),
+            _ => println!("{}", "Error retrieving information".red()),
+        }
+    }
 }
