@@ -2,15 +2,8 @@ use anyhow::Result;
 use colored::*;
 use serde::Deserialize;
 
-enum IncidentType {
-    All,
-    Unresolved,
-}
-
-enum MaintenanceType {
-    Active,
-    All,
-    Upcoming,
+trait GitHubApiEndpoint: Sized {
+    fn get_info(url: &str) -> Result<Self>;
 }
 
 #[derive(Deserialize, Debug)]
@@ -88,16 +81,17 @@ pub struct ComponentInfo {
     pub components: Vec<Component>,
 }
 
-impl ComponentInfo {
-    fn get_component_status() -> Result<ComponentInfo> {
-        let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/components.json")?
-            .json::<ComponentInfo>()?;
+impl GitHubApiEndpoint for ComponentInfo {
+    fn get_info(url: &str) -> Result<ComponentInfo> {
+        let result = reqwest::blocking::get(url)?.json::<ComponentInfo>()?;
 
         Ok(result)
     }
+}
 
+impl ComponentInfo {
     pub fn print() {
-        let status = ComponentInfo::get_component_status();
+        let status = ComponentInfo::get_info("https://www.githubstatus.com/api/v2/components.json");
 
         match status {
             Ok(s) => {
@@ -140,26 +134,15 @@ pub struct MaintenanceInfo {
     pub scheduled_maintenances: Vec<ScheduledMaintenance>,
 }
 
-impl MaintenanceInfo {
-    fn get_maintenance(maintenance_type: MaintenanceType) -> Result<MaintenanceInfo> {
-        let result: MaintenanceInfo = match maintenance_type {
-            MaintenanceType::Active => reqwest::blocking::get(
-                "https://www.githubstatus.com/api/v2/scheduled-maintenances/active.json",
-            )?
-            .json::<MaintenanceInfo>()?,
-            MaintenanceType::All => reqwest::blocking::get(
-                "https://www.githubstatus.com/api/v2/scheduled-maintenances.json",
-            )?
-            .json::<MaintenanceInfo>()?,
-            MaintenanceType::Upcoming => reqwest::blocking::get(
-                "https://www.githubstatus.com/api/v2/scheduled-maintenances/upcoming.json",
-            )?
-            .json::<MaintenanceInfo>()?,
-        };
+impl GitHubApiEndpoint for MaintenanceInfo {
+    fn get_info(url: &str) -> Result<MaintenanceInfo> {
+        let result = reqwest::blocking::get(url)?.json::<MaintenanceInfo>()?;
 
         Ok(result)
     }
+}
 
+impl MaintenanceInfo {
     fn print(self) {
         if self.scheduled_maintenances.is_empty() {
             println!("No unresolved incidents reported");
@@ -212,7 +195,9 @@ impl MaintenanceInfo {
     }
 
     pub fn print_activate() {
-        let info = MaintenanceInfo::get_maintenance(MaintenanceType::Active);
+        let info = MaintenanceInfo::get_info(
+            "https://www.githubstatus.com/api/v2/scheduled-maintenances/active.json",
+        );
 
         match info {
             Ok(i) => MaintenanceInfo::print(i),
@@ -221,7 +206,9 @@ impl MaintenanceInfo {
     }
 
     pub fn print_all() {
-        let info = MaintenanceInfo::get_maintenance(MaintenanceType::All);
+        let info = MaintenanceInfo::get_info(
+            "https://www.githubstatus.com/api/v2/scheduled-maintenances.json",
+        );
 
         match info {
             Ok(i) => MaintenanceInfo::print(i),
@@ -230,7 +217,9 @@ impl MaintenanceInfo {
     }
 
     pub fn print_upcoming() {
-        let info = MaintenanceInfo::get_maintenance(MaintenanceType::Upcoming);
+        let info = MaintenanceInfo::get_info(
+            "https://www.githubstatus.com/api/v2/scheduled-maintenances/upcoming.json",
+        );
 
         match info {
             Ok(i) => MaintenanceInfo::print(i),
@@ -245,16 +234,17 @@ pub struct StatusInfo {
     pub status: Status,
 }
 
-impl StatusInfo {
-    fn get_status() -> Result<StatusInfo> {
-        let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/status.json")?
-            .json::<StatusInfo>()?;
+impl GitHubApiEndpoint for StatusInfo {
+    fn get_info(url: &str) -> Result<StatusInfo> {
+        let result = reqwest::blocking::get(url)?.json::<StatusInfo>()?;
 
         Ok(result)
     }
+}
 
+impl StatusInfo {
     pub fn print() {
-        let status = StatusInfo::get_status();
+        let status = StatusInfo::get_info("https://www.githubstatus.com/api/v2/status.json");
 
         match status {
             Ok(s) => {
@@ -290,16 +280,17 @@ pub struct SummaryInfo {
     pub scheduled_maintenances: Vec<ScheduledMaintenance>,
 }
 
-impl SummaryInfo {
-    fn get_summary() -> Result<SummaryInfo> {
-        let result = reqwest::blocking::get("https://www.githubstatus.com/api/v2/summary.json")?
-            .json::<SummaryInfo>()?;
+impl GitHubApiEndpoint for SummaryInfo {
+    fn get_info(url: &str) -> Result<SummaryInfo> {
+        let result = reqwest::blocking::get(url)?.json::<SummaryInfo>()?;
 
         Ok(result)
     }
+}
 
+impl SummaryInfo {
     pub fn print() {
-        let summary = SummaryInfo::get_summary();
+        let summary = SummaryInfo::get_info("https://www.githubstatus.com/api/v2/summary.json");
 
         match summary {
             Ok(s) => {
@@ -353,22 +344,15 @@ pub struct IncidentInfo {
     pub incidents: Vec<Incident>,
 }
 
-impl IncidentInfo {
-    fn get_incidents(incident_type: IncidentType) -> Result<IncidentInfo> {
-        let result: IncidentInfo = match incident_type {
-            IncidentType::All => {
-                reqwest::blocking::get("https://www.githubstatus.com/api/v2/incidents.json")?
-                    .json::<IncidentInfo>()?
-            }
-            IncidentType::Unresolved => reqwest::blocking::get(
-                "https://www.githubstatus.com/api/v2/incidents/unresolved.json",
-            )?
-            .json::<IncidentInfo>()?,
-        };
+impl GitHubApiEndpoint for IncidentInfo {
+    fn get_info(url: &str) -> Result<IncidentInfo> {
+        let result = reqwest::blocking::get(url)?.json::<IncidentInfo>()?;
 
         Ok(result)
     }
+}
 
+impl IncidentInfo {
     fn print(self) {
         if self.incidents.is_empty() {
             println!("No unresolved incidents reported");
@@ -421,7 +405,7 @@ impl IncidentInfo {
     }
 
     pub fn print_all() {
-        let info = IncidentInfo::get_incidents(IncidentType::All);
+        let info = IncidentInfo::get_info("https://www.githubstatus.com/api/v2/incidents.json");
 
         match info {
             Ok(i) => IncidentInfo::print(i),
@@ -430,7 +414,8 @@ impl IncidentInfo {
     }
 
     pub fn print_unresolved() {
-        let info = IncidentInfo::get_incidents(IncidentType::Unresolved);
+        let info =
+            IncidentInfo::get_info("https://www.githubstatus.com/api/v2/incidents/unresolved.json");
 
         match info {
             Ok(i) => IncidentInfo::print(i),
