@@ -4,6 +4,8 @@ use serde::Deserialize;
 
 trait GitHubApiEndpoint: Sized {
     fn get_info(url: &str) -> Result<Self>;
+
+    fn print(&self);
 }
 
 #[derive(Deserialize, Debug)]
@@ -87,42 +89,44 @@ impl GitHubApiEndpoint for ComponentInfo {
 
         Ok(result)
     }
+
+    fn print(&self) {
+        for component in &self.components {
+            if component.description.is_some() {
+                if component.status == "operational" {
+                    println!("{}: {}", component.name, component.status.green());
+                } else if component.status == "degraded_performance" {
+                    println!("{}: {}", component.name, component.status.yellow());
+                } else if component.status == "partial_outge" {
+                    println!(
+                        "{}: {}",
+                        component.name,
+                        component.status.truecolor(255, 165, 0)
+                    );
+                } else if component.status == "major_outage" {
+                    println!("{}: {}", component.name, component.status.red());
+                } else {
+                    println!("{}: {}", component.name, component.status);
+                }
+
+                if let Some(updated_at) = &component.updated_at {
+                    println!("    Last Updated At: {}", updated_at);
+                }
+
+                println!();
+            }
+        }
+
+        println!("More info: {:?}", self.page.url);
+    }
 }
 
 impl ComponentInfo {
-    pub fn print() {
+    pub fn print_info() {
         let status = ComponentInfo::get_info("https://www.githubstatus.com/api/v2/components.json");
 
         match status {
-            Ok(s) => {
-                for component in s.components {
-                    if component.description.is_some() {
-                        if component.status == "operational" {
-                            println!("{}: {}", component.name, component.status.green());
-                        } else if component.status == "degraded_performance" {
-                            println!("{}: {}", component.name, component.status.yellow());
-                        } else if component.status == "partial_outge" {
-                            println!(
-                                "{}: {}",
-                                component.name,
-                                component.status.truecolor(255, 165, 0)
-                            );
-                        } else if component.status == "major_outage" {
-                            println!("{}: {}", component.name, component.status.red());
-                        } else {
-                            println!("{}: {}", component.name, component.status);
-                        }
-
-                        if let Some(updated_at) = component.updated_at {
-                            println!("    Last Updated At: {}", updated_at);
-                        }
-
-                        println!();
-                    }
-                }
-
-                println!("More info: {:?}", s.page.url);
-            }
+            Ok(s) => ComponentInfo::print(&s),
             _ => println!("{}", "Error retrieving information".red()),
         };
     }
@@ -140,15 +144,13 @@ impl GitHubApiEndpoint for MaintenanceInfo {
 
         Ok(result)
     }
-}
 
-impl MaintenanceInfo {
-    fn print(self) {
+    fn print(&self) {
         if self.scheduled_maintenances.is_empty() {
             println!("No unresolved incidents reported");
             println!();
         } else {
-            for incident in self.scheduled_maintenances {
+            for incident in &self.scheduled_maintenances {
                 if incident.impact == "none" {
                     println!("{}", incident.name.green());
                 } else if incident.impact == "minor" {
@@ -161,24 +163,24 @@ impl MaintenanceInfo {
                     println!("{}", incident.name);
                 }
 
-                if let Some(created_at) = incident.created_at {
+                if let Some(created_at) = &incident.created_at {
                     println!("    Created At: {}", created_at);
                 }
                 println!("    Short Link: {}", incident.shortlink);
                 println!("    Status: {}", incident.status);
 
-                if let Some(updated_at) = incident.updated_at {
+                if let Some(updated_at) = &incident.updated_at {
                     println!("    Updated At: {}", updated_at);
                 }
-                if let Some(incident_updates) = incident.incident_updates {
+                if let Some(incident_updates) = &incident.incident_updates {
                     println!("    Updates:");
                     for update in incident_updates {
                         println!("        Update: {}", update.body);
-                        if let Some(created_at) = update.created_at {
+                        if let Some(created_at) = &update.created_at {
                             println!("        created_at: {}", created_at);
                         }
                         println!("        status: {}", update.status);
-                        if let Some(updated_at) = update.updated_at {
+                        if let Some(updated_at) = &update.updated_at {
                             println!("        Updated At: {}", updated_at);
                         }
                     }
@@ -188,19 +190,21 @@ impl MaintenanceInfo {
             }
         }
 
-        if let Some(updated_at) = self.page.updated_at {
+        if let Some(updated_at) = &self.page.updated_at {
             println!("Last update: {}", updated_at);
         }
         println!("More info: {}", self.page.url);
     }
+}
 
+impl MaintenanceInfo {
     pub fn print_activate() {
         let info = MaintenanceInfo::get_info(
             "https://www.githubstatus.com/api/v2/scheduled-maintenances/active.json",
         );
 
         match info {
-            Ok(i) => MaintenanceInfo::print(i),
+            Ok(i) => MaintenanceInfo::print(&i),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
@@ -211,7 +215,7 @@ impl MaintenanceInfo {
         );
 
         match info {
-            Ok(i) => MaintenanceInfo::print(i),
+            Ok(i) => MaintenanceInfo::print(&i),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
@@ -222,7 +226,7 @@ impl MaintenanceInfo {
         );
 
         match info {
-            Ok(i) => MaintenanceInfo::print(i),
+            Ok(i) => MaintenanceInfo::print(&i),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
@@ -240,32 +244,34 @@ impl GitHubApiEndpoint for StatusInfo {
 
         Ok(result)
     }
+
+    fn print(&self) {
+        if self.status.indicator == "none" {
+            println!("{}", self.status.description.green());
+        } else if self.status.indicator == "minor" {
+            println!("{}", self.status.description.yellow());
+        } else if self.status.indicator == "major" {
+            println!("{}", self.status.description.truecolor(255, 165, 0));
+        } else if self.status.indicator == "critical" {
+            println!("{}", self.status.description.red());
+        } else {
+            println!("{}", self.status.description);
+        }
+
+        println!();
+        if let Some(updated_at) = &self.page.updated_at {
+            println!("Last update: {}", updated_at);
+        }
+        println!("More info: {}", self.page.url);
+    }
 }
 
 impl StatusInfo {
-    pub fn print() {
+    pub fn print_info() {
         let status = StatusInfo::get_info("https://www.githubstatus.com/api/v2/status.json");
 
         match status {
-            Ok(s) => {
-                if s.status.indicator == "none" {
-                    println!("{}", s.status.description.green());
-                } else if s.status.indicator == "minor" {
-                    println!("{}", s.status.description.yellow());
-                } else if s.status.indicator == "major" {
-                    println!("{}", s.status.description.truecolor(255, 165, 0));
-                } else if s.status.indicator == "critical" {
-                    println!("{}", s.status.description.red());
-                } else {
-                    println!("{}", s.status.description);
-                }
-
-                println!();
-                if let Some(updated_at) = s.page.updated_at {
-                    println!("Last update: {}", updated_at);
-                }
-                println!("More info: {}", s.page.url);
-            }
+            Ok(s) => StatusInfo::print(&s),
             _ => println!("{}", "Error retrieving information".red()),
         };
     }
@@ -286,53 +292,55 @@ impl GitHubApiEndpoint for SummaryInfo {
 
         Ok(result)
     }
+
+    fn print(&self) {
+        if self.status.indicator == "none" {
+            println!("{}", self.status.description.green());
+        } else if self.status.indicator == "minor" {
+            println!("{}", self.status.description.yellow());
+        } else if self.status.indicator == "major" {
+            println!("{}", self.status.description.truecolor(255, 165, 0));
+        } else if self.status.indicator == "critical" {
+            println!("{}", self.status.description.red());
+        } else {
+            println!("{}", self.status.description);
+        }
+
+        println!();
+
+        for component in &self.components {
+            if component.description.is_some() {
+                if component.status == "operational" {
+                    println!("{}: {}", component.name, component.status.green());
+                } else if component.status == "degraded_performance" {
+                    println!("{}: {}", component.name, component.status.yellow());
+                } else if component.status == "partial_outage" {
+                    println!(
+                        "{}: {}",
+                        component.name,
+                        component.status.truecolor(255, 165, 0)
+                    );
+                } else if component.status == "major_outage" {
+                    println!("{}: {}", component.name, component.status.red());
+                } else {
+                }
+            }
+        }
+
+        println!();
+        if let Some(updated_at) = &self.page.updated_at {
+            println!("Last Updated At: {}", updated_at);
+        }
+        println!("More info: {}", self.page.url);
+    }
 }
 
 impl SummaryInfo {
-    pub fn print() {
+    pub fn print_info() {
         let summary = SummaryInfo::get_info("https://www.githubstatus.com/api/v2/summary.json");
 
         match summary {
-            Ok(s) => {
-                if s.status.indicator == "none" {
-                    println!("{}", s.status.description.green());
-                } else if s.status.indicator == "minor" {
-                    println!("{}", s.status.description.yellow());
-                } else if s.status.indicator == "major" {
-                    println!("{}", s.status.description.truecolor(255, 165, 0));
-                } else if s.status.indicator == "critical" {
-                    println!("{}", s.status.description.red());
-                } else {
-                    println!("{}", s.status.description);
-                }
-
-                println!();
-
-                for component in s.components {
-                    if component.description.is_some() {
-                        if component.status == "operational" {
-                            println!("{}: {}", component.name, component.status.green());
-                        } else if component.status == "degraded_performance" {
-                            println!("{}: {}", component.name, component.status.yellow());
-                        } else if component.status == "partial_outage" {
-                            println!(
-                                "{}: {}",
-                                component.name,
-                                component.status.truecolor(255, 165, 0)
-                            );
-                        } else if component.status == "major_outage" {
-                            println!("{}: {}", component.name, component.status.red());
-                        } else {
-                        }
-                    }
-                }
-
-                println!();
-                if let Some(updated_at) = s.page.updated_at {
-                    println!("Last Updated At: {}", updated_at);
-                }
-                println!("More info: {}", s.page.url);
-            }
+            Ok(s) => SummaryInfo::print(&s),
             _ => println!("{}", "Error retrieving information".red()),
         };
     }
@@ -350,15 +358,13 @@ impl GitHubApiEndpoint for IncidentInfo {
 
         Ok(result)
     }
-}
 
-impl IncidentInfo {
-    fn print(self) {
+    fn print(&self) {
         if self.incidents.is_empty() {
             println!("No unresolved incidents reported");
             println!();
         } else {
-            for incident in self.incidents {
+            for incident in &self.incidents {
                 if incident.impact == "none" {
                     println!("{}", incident.name.green());
                 } else if incident.impact == "minor" {
@@ -371,24 +377,24 @@ impl IncidentInfo {
                     println!("{}", incident.name);
                 }
 
-                if let Some(created_at) = incident.created_at {
+                if let Some(created_at) = &incident.created_at {
                     println!("    Created At: {}", created_at);
                 }
                 println!("    Short Link: {}", incident.shortlink);
                 println!("    Status: {}", incident.status);
 
-                if let Some(updated_at) = incident.updated_at {
+                if let Some(updated_at) = &incident.updated_at {
                     println!("    Updated At: {}", updated_at);
                 }
-                if let Some(incident_updates) = incident.incident_updates {
+                if let Some(incident_updates) = &incident.incident_updates {
                     println!("    Updates:");
                     for update in incident_updates {
                         println!("        Update: {}", update.body);
-                        if let Some(created_at) = update.created_at {
+                        if let Some(created_at) = &update.created_at {
                             println!("        created_at: {}", created_at);
                         }
                         println!("        status: {}", update.status);
-                        if let Some(updated_at) = update.updated_at {
+                        if let Some(updated_at) = &update.updated_at {
                             println!("        Updated At: {}", updated_at);
                         }
                     }
@@ -398,17 +404,19 @@ impl IncidentInfo {
             }
         }
 
-        if let Some(updated_at) = self.page.updated_at {
+        if let Some(updated_at) = &self.page.updated_at {
             println!("Last update: {}", updated_at);
         }
         println!("More info: {}", self.page.url);
     }
+}
 
+impl IncidentInfo {
     pub fn print_all() {
         let info = IncidentInfo::get_info("https://www.githubstatus.com/api/v2/incidents.json");
 
         match info {
-            Ok(i) => IncidentInfo::print(i),
+            Ok(i) => IncidentInfo::print(&i),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
@@ -418,7 +426,7 @@ impl IncidentInfo {
             IncidentInfo::get_info("https://www.githubstatus.com/api/v2/incidents/unresolved.json");
 
         match info {
-            Ok(i) => IncidentInfo::print(i),
+            Ok(i) => IncidentInfo::print(&i),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
