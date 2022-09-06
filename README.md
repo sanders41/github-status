@@ -14,7 +14,7 @@ cd github-status
 cargo install --path .
 ```
 
-This will install to the `.cargo/bin` directory
+This will install to the `~/.cargo/bin` directory
 
 
 ## Usage
