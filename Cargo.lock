@@ -233,6 +233,7 @@ dependencies = [
  "colored",
  "reqwest",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
