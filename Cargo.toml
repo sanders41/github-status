@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.64"
+anyhow = "1.0.65"
 clap = { version = "3.2.20", features = ["color", "suggestions", "derive"] }
 colored = "2.0.0"
 reqwest = { version = "0.11.11", features = ["blocking", "json"] }
