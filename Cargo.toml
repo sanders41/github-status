@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.66"
-clap = { version = "4.0.29", features = ["color", "suggestions", "derive"] }
+clap = { version = "4.0.30", features = ["color", "suggestions", "derive"] }
 colored = "2.0.0"
 reqwest = { version = "0.11.13", features = ["blocking", "json"] }
 serde = { version = "1.0.151", features = ["derive"] }
