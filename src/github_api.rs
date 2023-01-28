@@ -96,15 +96,19 @@ impl GitHubApiEndpoint for ComponentInfo {
                 if component.status == "operational" {
                     println!("{}: {}", component.name, component.status.green());
                 } else if component.status == "degraded_performance" {
-                    println!("{}: {}", component.name, component.status.yellow());
+                    println!(
+                        "{}: {}",
+                        component.name,
+                        String::from("degraded performance").yellow()
+                    );
                 } else if component.status == "partial_outge" {
                     println!(
                         "{}: {}",
                         component.name,
-                        component.status.truecolor(255, 165, 0)
+                        String::from("partial outage").truecolor(255, 165, 0),
                     );
                 } else if component.status == "major_outage" {
-                    println!("{}: {}", component.name, component.status.red());
+                    println!("{}: {}", component.name, String::from("major outage").red());
                 } else {
                     println!("{}: {}", component.name, component.status);
                 }
@@ -319,15 +323,19 @@ impl GitHubApiEndpoint for SummaryInfo {
                 if component.status == "operational" {
                     println!("{}: {}", component.name, component.status.green());
                 } else if component.status == "degraded_performance" {
-                    println!("{}: {}", component.name, component.status.yellow());
+                    println!(
+                        "{}: {}",
+                        component.name,
+                        String::from("degraded performance").yellow()
+                    );
                 } else if component.status == "partial_outage" {
                     println!(
                         "{}: {}",
                         component.name,
-                        component.status.truecolor(255, 165, 0)
+                        String::from("partial outage").truecolor(255, 165, 0),
                     );
                 } else if component.status == "major_outage" {
-                    println!("{}: {}", component.name, component.status.red());
+                    println!("{}: {}", component.name, String::from("major outage").red());
                 } else {
                 }
             }
