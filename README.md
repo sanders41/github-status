@@ -24,3 +24,11 @@ To see a list of available commands run:
 ```sh
 github-status --help
 ```
+
+## Example
+
+```sh
+github-status summary
+```
+
+![Summary](./assets/summary.png)
