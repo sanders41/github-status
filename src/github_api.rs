@@ -114,7 +114,7 @@ impl GitHubApiEndpoint for ComponentInfo {
                 }
 
                 if let Some(updated_at) = &component.updated_at {
-                    println!("    Last Updated At: {}", updated_at);
+                    println!("    Last Updated At: {updated_at}");
                 }
 
                 println!();
@@ -170,24 +170,24 @@ impl GitHubApiEndpoint for MaintenanceInfo {
                 }
 
                 if let Some(created_at) = &incident.created_at {
-                    println!("    Created At: {}", created_at);
+                    println!("    Created At: {created_at}");
                 }
                 println!("    Short Link: {}", incident.shortlink);
                 println!("    Status: {}", incident.status);
 
                 if let Some(updated_at) = &incident.updated_at {
-                    println!("    Updated At: {}", updated_at);
+                    println!("    Updated At: {updated_at}");
                 }
                 if let Some(incident_updates) = &incident.incident_updates {
                     println!("    Updates:");
                     for update in incident_updates {
                         println!("        Update: {}", update.body);
                         if let Some(created_at) = &update.created_at {
-                            println!("        created_at: {}", created_at);
+                            println!("        created_at: {created_at}");
                         }
                         println!("        status: {}", update.status);
                         if let Some(updated_at) = &update.updated_at {
-                            println!("        Updated At: {}", updated_at);
+                            println!("        Updated At: {updated_at}");
                         }
                     }
                 }
@@ -197,7 +197,7 @@ impl GitHubApiEndpoint for MaintenanceInfo {
         }
 
         if let Some(updated_at) = &self.page.updated_at {
-            println!("Last update: {}", updated_at);
+            println!("Last update: {updated_at}");
         }
         println!("More info: {}", self.page.url);
 
@@ -268,7 +268,7 @@ impl GitHubApiEndpoint for StatusInfo {
 
         println!();
         if let Some(updated_at) = &self.page.updated_at {
-            println!("Last update: {}", updated_at);
+            println!("Last update: {updated_at}");
         }
         println!("More info: {}", self.page.url);
 
@@ -343,7 +343,7 @@ impl GitHubApiEndpoint for SummaryInfo {
 
         println!();
         if let Some(updated_at) = &self.page.updated_at {
-            println!("Last Updated At: {}", updated_at);
+            println!("Last Updated At: {updated_at}");
         }
         println!("More info: {}", self.page.url);
 
@@ -394,24 +394,24 @@ impl GitHubApiEndpoint for IncidentInfo {
                 }
 
                 if let Some(created_at) = &incident.created_at {
-                    println!("    Created At: {}", created_at);
+                    println!("    Created At: {created_at}");
                 }
                 println!("    Short Link: {}", incident.shortlink);
                 println!("    Status: {}", incident.status);
 
                 if let Some(updated_at) = &incident.updated_at {
-                    println!("    Updated At: {}", updated_at);
+                    println!("    Updated At: {updated_at}");
                 }
                 if let Some(incident_updates) = &incident.incident_updates {
                     println!("    Updates:");
                     for update in incident_updates {
                         println!("        Update: {}", update.body);
                         if let Some(created_at) = &update.created_at {
-                            println!("        created_at: {}", created_at);
+                            println!("        created_at: {created_at}");
                         }
                         println!("        status: {}", update.status);
                         if let Some(updated_at) = &update.updated_at {
-                            println!("        Updated At: {}", updated_at);
+                            println!("        Updated At: {updated_at}");
                         }
                     }
                 }
@@ -421,7 +421,7 @@ impl GitHubApiEndpoint for IncidentInfo {
         }
 
         if let Some(updated_at) = &self.page.updated_at {
-            println!("Last update: {}", updated_at);
+            println!("Last update: {updated_at}");
         }
         println!("More info: {}", self.page.url);
 
