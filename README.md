@@ -32,3 +32,7 @@ github-status summary
 ```
 
 ![Summary](./assets/summary.png)
+
+## Contributing
+
+Contributions to this project are welcome. If you are interesting in contributing please see our [contributing guide](CONTRIBUTING.md)
