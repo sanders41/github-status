@@ -1,11 +1,12 @@
 use anyhow::Result;
 use colored::*;
+use pager::Pager;
 use serde::Deserialize;
 
 trait GitHubApiEndpoint: Sized {
     fn get_info(url: &str) -> Result<Self>;
 
-    fn print(&self) -> Result<()>;
+    fn print(&self, pager: bool) -> Result<()>;
 }
 
 #[derive(Deserialize, Debug)]
@@ -90,7 +91,11 @@ impl GitHubApiEndpoint for ComponentInfo {
         Ok(result)
     }
 
-    fn print(&self) -> Result<()> {
+    fn print(&self, pager: bool) -> Result<()> {
+        if pager {
+            Pager::new().setup();
+        }
+
         for component in &self.components {
             if component.description.is_some() {
                 if component.status == "operational" {
@@ -128,11 +133,11 @@ impl GitHubApiEndpoint for ComponentInfo {
 }
 
 impl ComponentInfo {
-    pub fn print_info() {
+    pub fn print_info(pager: bool) {
         let status = ComponentInfo::get_info("https://www.githubstatus.com/api/v2/components.json");
 
         match status {
-            Ok(s) => ComponentInfo::print(&s).unwrap(),
+            Ok(s) => ComponentInfo::print(&s, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         };
     }
@@ -151,7 +156,11 @@ impl GitHubApiEndpoint for MaintenanceInfo {
         Ok(result)
     }
 
-    fn print(&self) -> Result<()> {
+    fn print(&self, pager: bool) -> Result<()> {
+        if pager {
+            Pager::new().setup();
+        }
+
         if self.scheduled_maintenances.is_empty() {
             println!("No unresolved incidents reported");
             println!();
@@ -206,35 +215,35 @@ impl GitHubApiEndpoint for MaintenanceInfo {
 }
 
 impl MaintenanceInfo {
-    pub fn print_activate() {
+    pub fn print_activate(pager: bool) {
         let info = MaintenanceInfo::get_info(
             "https://www.githubstatus.com/api/v2/scheduled-maintenances/active.json",
         );
 
         match info {
-            Ok(i) => MaintenanceInfo::print(&i).unwrap(),
+            Ok(i) => MaintenanceInfo::print(&i, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
 
-    pub fn print_all() {
+    pub fn print_all(pager: bool) {
         let info = MaintenanceInfo::get_info(
             "https://www.githubstatus.com/api/v2/scheduled-maintenances.json",
         );
 
         match info {
-            Ok(i) => MaintenanceInfo::print(&i).unwrap(),
+            Ok(i) => MaintenanceInfo::print(&i, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
 
-    pub fn print_upcoming() {
+    pub fn print_upcoming(pager: bool) {
         let info = MaintenanceInfo::get_info(
             "https://www.githubstatus.com/api/v2/scheduled-maintenances/upcoming.json",
         );
 
         match info {
-            Ok(i) => MaintenanceInfo::print(&i).unwrap(),
+            Ok(i) => MaintenanceInfo::print(&i, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
@@ -253,7 +262,11 @@ impl GitHubApiEndpoint for StatusInfo {
         Ok(result)
     }
 
-    fn print(&self) -> Result<()> {
+    fn print(&self, pager: bool) -> Result<()> {
+        if pager {
+            Pager::new().setup();
+        }
+
         if self.status.indicator == "none" {
             println!("{}", self.status.description.green());
         } else if self.status.indicator == "minor" {
@@ -277,11 +290,11 @@ impl GitHubApiEndpoint for StatusInfo {
 }
 
 impl StatusInfo {
-    pub fn print_info() {
+    pub fn print_info(pager: bool) {
         let status = StatusInfo::get_info("https://www.githubstatus.com/api/v2/status.json");
 
         match status {
-            Ok(s) => StatusInfo::print(&s).unwrap(),
+            Ok(s) => StatusInfo::print(&s, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         };
     }
@@ -303,7 +316,11 @@ impl GitHubApiEndpoint for SummaryInfo {
         Ok(result)
     }
 
-    fn print(&self) -> Result<()> {
+    fn print(&self, pager: bool) -> Result<()> {
+        if pager {
+            Pager::new().setup();
+        }
+
         if self.status.indicator == "none" {
             println!("{}", self.status.description.green());
         } else if self.status.indicator == "minor" {
@@ -352,11 +369,11 @@ impl GitHubApiEndpoint for SummaryInfo {
 }
 
 impl SummaryInfo {
-    pub fn print_info() {
+    pub fn print_info(pager: bool) {
         let summary = SummaryInfo::get_info("https://www.githubstatus.com/api/v2/summary.json");
 
         match summary {
-            Ok(s) => SummaryInfo::print(&s).unwrap(),
+            Ok(s) => SummaryInfo::print(&s, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         };
     }
@@ -375,7 +392,11 @@ impl GitHubApiEndpoint for IncidentInfo {
         Ok(result)
     }
 
-    fn print(&self) -> Result<()> {
+    fn print(&self, pager: bool) -> Result<()> {
+        if pager {
+            Pager::new().setup();
+        }
+
         if self.incidents.is_empty() {
             println!("No unresolved incidents reported");
             println!();
@@ -430,21 +451,21 @@ impl GitHubApiEndpoint for IncidentInfo {
 }
 
 impl IncidentInfo {
-    pub fn print_all() {
+    pub fn print_all(pager: bool) {
         let info = IncidentInfo::get_info("https://www.githubstatus.com/api/v2/incidents.json");
 
         match info {
-            Ok(i) => IncidentInfo::print(&i).unwrap(),
+            Ok(i) => IncidentInfo::print(&i, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
 
-    pub fn print_unresolved() {
+    pub fn print_unresolved(pager: bool) {
         let info =
             IncidentInfo::get_info("https://www.githubstatus.com/api/v2/incidents/unresolved.json");
 
         match info {
-            Ok(i) => IncidentInfo::print(&i).unwrap(),
+            Ok(i) => IncidentInfo::print(&i, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         }
     }
@@ -504,7 +525,7 @@ mod tests {
             }"#;
 
         let info: ComponentInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -569,7 +590,7 @@ mod tests {
             }"#;
 
         let info: IncidentInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -611,7 +632,7 @@ mod tests {
             }"#;
 
         let info: IncidentInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -664,7 +685,7 @@ mod tests {
             }"#;
 
         let info: MaintenanceInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -742,7 +763,7 @@ mod tests {
             }"#;
 
         let info: MaintenanceInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -786,7 +807,7 @@ mod tests {
             }"#;
 
         let info: MaintenanceInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -807,7 +828,7 @@ mod tests {
             }"#;
 
         let info: StatusInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 
@@ -936,7 +957,7 @@ mod tests {
             }"#;
 
         let info: SummaryInfo = serde_json::from_str(data).unwrap();
-        let result = info.print();
+        let result = info.print(false);
         assert!(result.is_ok());
     }
 }

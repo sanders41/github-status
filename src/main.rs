@@ -10,13 +10,13 @@ fn main() {
     let opt = Options::parse();
 
     match opt.command {
-        Command::ActiveMaintenance => MaintenanceInfo::print_activate(),
-        Command::AllIncidents => IncidentInfo::print_all(),
-        Command::AllScheduledMaintenances => MaintenanceInfo::print_all(),
-        Command::Component => ComponentInfo::print_info(),
-        Command::Status => StatusInfo::print_info(),
-        Command::Summary => SummaryInfo::print_info(),
-        Command::UnresolvedIncidents => IncidentInfo::print_unresolved(),
-        Command::UpcomingMaintenance => MaintenanceInfo::print_upcoming(),
+        Command::ActiveMaintenance { pager } => MaintenanceInfo::print_activate(pager),
+        Command::AllIncidents { pager } => IncidentInfo::print_all(pager),
+        Command::AllScheduledMaintenances { pager } => MaintenanceInfo::print_all(pager),
+        Command::Component { pager } => ComponentInfo::print_info(pager),
+        Command::Status { pager } => StatusInfo::print_info(pager),
+        Command::Summary { pager } => SummaryInfo::print_info(pager),
+        Command::UnresolvedIncidents { pager } => IncidentInfo::print_unresolved(pager),
+        Command::UpcomingMaintenance { pager } => MaintenanceInfo::print_upcoming(pager),
     }
 }
