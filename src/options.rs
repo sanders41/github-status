@@ -10,26 +10,50 @@ pub struct Options {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Gets a list of active maintenance.
-    ActiveMaintenance,
+    ActiveMaintenance {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Gets a list of all incidents.
-    AllIncidents,
+    AllIncidents {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Gets a list of the 50 most recent scheduled maintenances.
-    AllScheduledMaintenances,
+    AllScheduledMaintenances {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Status of each component.
-    Component,
+    Component {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Gets the current status
-    Status,
+    Status {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Gets a summary for the current GitHub status.
-    Summary,
+    Summary {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Gets a list of any unresolved incidents.
-    UnresolvedIncidents,
+    UnresolvedIncidents {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 
     /// Gets a list of upcoming maintenance
-    UpcomingMaintenance,
+    UpcomingMaintenance {
+        #[clap(short, long, help = "If set the output will be displayed in a pager")]
+        pager: bool,
+    },
 }
