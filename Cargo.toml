@@ -2,6 +2,16 @@
 name = "github-status"
 version = "1.1.0"
 edition = "2021"
+authors = ["Paul Sanders <psanders1@gmail.com>"]
+description = "github-status is a CLI to check the status of GitHub."
+documentation = "https://github.com/sanders41/github-status"
+homepage = "https://github.com/sanders41/github-status"
+repository = "https://github.com/sanders41/github-status"
+readme = "README.md"
+exclude = ["assets/*"]
+keywords = ["github", "status", "command-line", "cli"]
+categories = ["command-line-utilities"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
