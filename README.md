@@ -6,15 +6,9 @@ A simple Cli to check the status of GitHub
 
 ## Install
 
-Clone and install the repositry
-
 ```sh
-git clone git@github.com/sanders41/github-status
-cd github-status
 cargo install github-status
 ```
-
-This will install to the `~/.cargo/bin` directory
 
 ## Usage
 
