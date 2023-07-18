@@ -16,7 +16,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.71"
+anyhow = "1.0.72"
 clap = { version = "4.3.12", features = ["color", "suggestions", "derive"] }
 colored = "2.0.4"
 pager = "0.16.1"
