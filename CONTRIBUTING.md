@@ -2,7 +2,8 @@
 
 ## Where to start
 
-All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are
+welcome.
 
 The best place to start is to check the [issues](https://github.com/sanders41/github-status/issues)
 for something that interests you.
@@ -12,7 +13,8 @@ for something that interests you.
 Please include:
 
 1. A short, self-contained Python snippet reproducing the problem. You can format the code by using
-[GitHub markdown](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github). For example:
+[GitHub markdown](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github). For
+example:
 
     ```sh
     github-status summary
@@ -35,7 +37,8 @@ cd github-status
 git remote add upstream git@github.com:sanders41/github-status
 ```
 
-This creates the directory github-status and connects your repository to the upstream (main project) repository.
+This creates the directory github-status and connects your repository to the upstream (main project)
+repository.
 
 ### Creating a branch
 
@@ -108,13 +111,15 @@ git commit -am 'Some short helpful message to describe your changes'
 
 ## Push your changes
 
-Once your changes are ready and all linting/tests are passing you can push your changes to your forked repositry:
+Once your changes are ready and all linting/tests are passing you can push your changes to your
+forked repository:
 
 ```sh
 git push origin my-new-feature
 ```
 
-origin is the default name of your remote repositry on GitHub. You can see all of your remote repositories by running:
+origin is the default name of your remote repository on GitHub. You can see all of your remote
+repositories by running:
 
 ```sh
 git remote -v
@@ -199,7 +204,8 @@ Then you can do:
 git branch -d my-new-feature
 ```
 
-Make sure you use a lower-case -d, or else git won’t warn you if your feature branch has not actually been merged.
+Make sure you use a lower-case -d, or else git won’t warn you if your feature branch has not
+actually been merged.
 
 The branch will still exist on GitHub, so to delete it there do:
 
