@@ -353,7 +353,6 @@ impl GitHubApiEndpoint for SummaryInfo {
                     );
                 } else if component.status == "major_outage" {
                     println!("{}: {}", component.name, String::from("major outage").red());
-                } else {
                 }
             }
         }
