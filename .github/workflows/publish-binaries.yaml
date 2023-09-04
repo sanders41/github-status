@@ -21,7 +21,7 @@ jobs:
             asset_name: github-status-macos-amd64
 
     steps:
-      - uses: hecrj/setup-rust-action@v1
+      - uses: hecrj/setup-rust-action@v2
         with:
           rust-version: stable
       - uses: actions/checkout@v3
