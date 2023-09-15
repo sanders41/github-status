@@ -12,7 +12,7 @@ for something that interests you.
 
 Please include:
 
-1. A short, self-contained Python snippet reproducing the problem. You can format the code by using
+1. A short, self-contained example reproducing the problem. You can format the code by using
 [GitHub markdown](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github). For
 example:
 
