@@ -21,7 +21,7 @@ clap = { version = "4.4.6", features = ["color", "suggestions", "derive"] }
 colored = "2.0.4"
 pager = "0.16.1"
 reqwest = { version = "0.11.22", features = ["blocking", "json"] }
-serde = { version = "1.0.188", features = ["derive"] }
+serde = { version = "1.0.189", features = ["derive"] }
 
 [dev-dependencies]
 serde_json = "1.0.107"
