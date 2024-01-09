@@ -17,7 +17,7 @@ license = "MIT"
 
 [dependencies]
 anyhow = "1.0.79"
-clap = { version = "4.4.13", features = ["color", "suggestions", "derive"] }
+clap = { version = "4.4.14", features = ["color", "suggestions", "derive"] }
 colored = "2.1.0"
 pager = "0.16.1"
 reqwest = { version = "0.11.23", features = ["blocking", "json"] }
