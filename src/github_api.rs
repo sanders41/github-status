@@ -1,3 +1,5 @@
+use std::{process::exit, thread, time::Duration};
+
 use anyhow::Result;
 use colored::*;
 use pager::Pager;
@@ -375,6 +377,50 @@ impl SummaryInfo {
             Ok(s) => SummaryInfo::print(&s, pager).unwrap(),
             _ => println!("{}", "Error retrieving information".red()),
         };
+    }
+
+    pub fn watch(duration: Duration, cancel_when_operational: bool) {
+        let mut check = 1;
+
+        if cancel_when_operational {
+            println!(
+                "Watching GitHub status with {:?} between checks. Polling will stop when everything is operational. Press Ctrl + c to cancel early.",
+                duration
+            );
+        } else {
+            println!(
+                "Watching GitHub status with {:?} between checks. Press Ctrl + c to cancel.",
+                duration
+            )
+        };
+
+        loop {
+            println!("\nCheck number: {check}\n");
+
+            let summary = SummaryInfo::get_info("https://www.githubstatus.com/api/v2/summary.json");
+
+            if let Ok(s) = summary {
+                SummaryInfo::print(&s, false).unwrap();
+
+                if cancel_when_operational {
+                    let mut operational = true;
+
+                    for component in s.components {
+                        if component.description.is_some() && component.status != "operational" {
+                            operational = false;
+                        }
+                    }
+
+                    if operational {
+                        println!("All services are operational, exiting");
+                        exit(0);
+                    }
+                }
+            };
+
+            check += 1;
+            thread::sleep(duration);
+        }
     }
 }
 
