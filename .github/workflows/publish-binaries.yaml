@@ -1,64 +1,82 @@
 on:
   release:
     types:
-    - published
+      - published
 
 name: Publish binaries to release
 
 jobs:
   publish:
-    name: Publish for ${{ matrix.os }}
+    name: Publish for ${{ matrix.os }} ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
             artifact_name: github-status
-            asset_name: github-status-linux-amd64
+            asset_name: github-status-generator-linux-amd64
+            target: x86_64-unknown-linux-gnu
           - os: macos-latest
             artifact_name: github-status
-            asset_name: github-status-macos-amd64
-
+            asset_name: github-status-generator-macos-amd64
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            artifact_name: github-status
+            asset_name: github-status-generator-macos-aarch64
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            artifact_name: checksum
+            asset_name: file-checksum-windows-amd64.exe
+            target: x86_64-pc-windows-gnu
     steps:
-      - uses: hecrj/setup-rust-action@v2
-        with:
-          rust-version: stable
       - uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
       - name: Build
-        run: cargo build --release --locked
-      - name: Compress binaries
-        uses: svenstaro/upx-action@v2
-        with:
-          file: target/release/${{ matrix.artifact_name }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN}}
-          file: target/release/${{ matrix.artifact_name }}
+          file: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
-
-  publish-armv8:
-    name: Publish for ARMv8
+  cargo-publish:
+    name: Publish to crates.io
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: uraimo/run-on-arch-action@v2
-        id: runcmd
-        with:
-          architecture: aarch64 # aka ARMv8
-          distribution: ubuntu@latest
-          run: |
-            apt update
-            apt install -y curl gcc make
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
-            source $HOME/.cargo/env
-            cargo build --release --locked
-      - name: Upload the binary to release
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - name: Publish
+        run: cargo publish --token ${{ secrets.CARGO_API_TOKEN }}
+  build-deb:
+    name: Build and upload deb package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - name: Install packages
+        run: apt install build-essential pkg-config libssl-dev
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+      - name: Create package
+        id: create-deb
+        run: |
+          cargo deb --deb-revision=""  # --deb-revision="" removes the -1 post tag
+          cd target/debian
+          DEB_FILE=$(find github-status-generator*_*.deb)
+      - name: Upload deb package to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN}}
-          file: target/release/{{ matrix.artifact_name }}
-          asset_name: github-status-linux-armv8
+          file: target/debian/${{ steps.create-deb.DEB_FILE }}
+          asset_name: ${{ steps.create-deb.DEB_FILE }}
           tag: ${{ github.ref }}
