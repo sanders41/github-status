@@ -56,4 +56,22 @@ pub enum Command {
         #[clap(short, long, help = "If set the output will be displayed in a pager")]
         pager: bool,
     },
+
+    /// Continue polling for status
+    Watch {
+        #[clap(
+            short,
+            long,
+            default_value_t = 1,
+            help = "The duration to wait between polling in minutes"
+        )]
+        duration: u64,
+
+        #[clap(
+            short,
+            long,
+            help = "Cancel the watch when all services are operational"
+        )]
+        cancel_when_operational: bool,
+    },
 }
