@@ -13,12 +13,8 @@ trait GitHubApiEndpoint: Sized {
 
 #[derive(Deserialize, Debug)]
 pub struct Component {
-    pub created_at: Option<String>,
     pub description: Option<String>,
-    pub id: String,
     pub name: String,
-    pub page_id: String,
-    pub position: u8,
     pub status: String,
     pub updated_at: Option<String>,
 }
@@ -26,13 +22,9 @@ pub struct Component {
 #[derive(Deserialize, Debug)]
 pub struct Incident {
     pub created_at: Option<String>,
-    pub id: String,
     pub impact: String,
     pub incident_updates: Option<Vec<IncidentUpdate>>,
-    pub monitoring_at: Option<String>,
     pub name: String,
-    pub page_id: String,
-    pub resolved_at: Option<String>,
     pub shortlink: String,
     pub status: String,
     pub updated_at: Option<String>,
@@ -42,17 +34,12 @@ pub struct Incident {
 pub struct IncidentUpdate {
     pub body: String,
     pub created_at: Option<String>,
-    pub display_at: Option<String>,
-    pub id: String,
-    pub incident_id: String,
     pub status: String,
     pub updated_at: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Page {
-    pub id: String,
-    pub name: String,
     pub url: String,
     pub updated_at: Option<String>,
 }
@@ -60,15 +47,9 @@ pub struct Page {
 #[derive(Deserialize, Debug)]
 pub struct ScheduledMaintenance {
     pub created_at: Option<String>,
-    pub id: String,
     pub impact: String,
     pub incident_updates: Option<Vec<IncidentUpdate>>,
-    pub monitoring_at: Option<String>,
     pub name: String,
-    pub page_id: String,
-    pub resolved_at: Option<String>,
-    pub scheduled_for: String,
-    pub scheduled_until: String,
     pub shortlink: String,
     pub status: String,
     pub updated_at: Option<String>,
@@ -307,8 +288,6 @@ pub struct SummaryInfo {
     pub page: Page,
     pub status: Status,
     pub components: Vec<Component>,
-    pub incidents: Vec<Incident>,
-    pub scheduled_maintenances: Vec<ScheduledMaintenance>,
 }
 
 impl GitHubApiEndpoint for SummaryInfo {
