@@ -20,7 +20,7 @@ anyhow = "1.0.86"
 clap = { version = "4.5.16", features = ["color", "suggestions", "derive"] }
 colored = "2.1.0"
 pager = "0.16.1"
-reqwest = { version = "0.12.5", features = ["blocking", "json"] }
+reqwest = { version = "0.12.7", features = ["blocking", "json"] }
 serde = { version = "1.0.208", features = ["derive"] }
 
 [dev-dependencies]
