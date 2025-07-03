@@ -363,13 +363,11 @@ impl SummaryInfo {
 
         if cancel_when_operational {
             println!(
-                "Watching GitHub status with {:?} between checks. Polling will stop when everything is operational. Press Ctrl + c to cancel early.",
-                duration
+                "Watching GitHub status with {duration:?} between checks. Polling will stop when everything is operational. Press Ctrl + c to cancel early."
             );
         } else {
             println!(
-                "Watching GitHub status with {:?} between checks. Press Ctrl + c to cancel.",
-                duration
+                "Watching GitHub status with {duration:?} between checks. Press Ctrl + c to cancel."
             )
         };
 
