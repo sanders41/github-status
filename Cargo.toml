@@ -24,4 +24,4 @@ reqwest = { version = "0.12.28", features = ["blocking", "json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 
 [dev-dependencies]
-serde_json = "1.0.147"
+serde_json = "1.0.148"
